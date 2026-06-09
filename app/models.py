@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from typing import Optional
 from datetime import datetime
 from enum import Enum
@@ -28,6 +28,8 @@ class TicketIngest(BaseModel):
     reporter: str
 
 class TicketResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
     ticket_id: str
     subject: str
@@ -38,15 +40,11 @@ class TicketResponse(BaseModel):
     status: TicketStatus
     created_at: datetime
 
-    class Config:
-        from_attributes = True
-
 class AuditLogResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     ticket_id: str
     action: str
     details: str
     timestamp: datetime
-
-    class Config:
-        from_attributes = True
 
