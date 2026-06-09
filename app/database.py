@@ -1,7 +1,6 @@
 from sqlalchemy import create_engine, Column, Integer, String, DateTime, Text, Enum
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
-from datetime import datetime
+from sqlalchemy.orm import sessionmaker, declarative_base
+from datetime import datetime, timezone
 import enum
 import os
 from app.config import settings
@@ -49,7 +48,7 @@ class Ticket(Base):
     category = Column(Enum(TicketCategory), nullable=True)
     priority = Column(Enum(TicketPriority), nullable=True)
     status = Column(Enum(TicketStatus), default=TicketStatus.CREATED)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
 class AuditLog(Base):
     __tablename__ = "audit_logs"
@@ -58,7 +57,7 @@ class AuditLog(Base):
     ticket_id = Column(String, index=True)
     action = Column(String)
     details = Column(Text)
-    timestamp = Column(DateTime, default=datetime.utcnow)
+    timestamp = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
 # Initialize database
 def init_db():
