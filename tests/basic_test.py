@@ -1,8 +1,12 @@
 import pytest
 from fastapi.testclient import TestClient
 from app.main import app
+from app.database import init_db
 
 client = TestClient(app)
+
+# Ensure database is initialized for tests
+init_db()
 
 def test_health_check():
     """Test health check endpoint."""

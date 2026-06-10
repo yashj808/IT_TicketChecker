@@ -59,7 +59,7 @@ async def ingest_ticket(ticket: TicketIngest, db: Session = Depends(get_db)):
     db.add(audit)
     db.commit()
     
-    return TicketResponse.from_orm(db_ticket)
+    return TicketResponse.model_validate(db_ticket)
 
 # Get ticket
 @app.get("/api/tickets/{ticket_id}", response_model=TicketResponse)
@@ -68,14 +68,14 @@ async def get_ticket(ticket_id: str, db: Session = Depends(get_db)):
     ticket = db.query(Ticket).filter(Ticket.ticket_id == ticket_id).first()
     if not ticket:
         raise HTTPException(status_code=404, detail="Ticket not found")
-    return TicketResponse.from_orm(ticket)
+    return TicketResponse.model_validate(ticket)
 
 # Get audit trail
 @app.get("/api/tickets/{ticket_id}/audit", response_model=list[AuditLogResponse])
 async def get_audit_trail(ticket_id: str, db: Session = Depends(get_db)):
     """Retrieve audit trail for a ticket."""
     logs = db.query(AuditLog).filter(AuditLog.ticket_id == ticket_id).all()
-    return [AuditLogResponse.from_orm(log) for log in logs]
+    return [AuditLogResponse.model_validate(log) for log in logs]
 
 if __name__ == "__main__":
     import uvicorn
