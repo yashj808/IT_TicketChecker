@@ -1,15 +1,15 @@
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 import uuid
-from contextlib import asynccontextmanager
 from app.config import settings
 from app.database import init_db, get_db, Ticket, AuditLog
 from app.models import TicketIngest, TicketResponse, AuditLogResponse
+from app.api.tickets import router as tickets_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Initialize database on startup
     init_db()
     yield
 
@@ -17,7 +17,7 @@ app = FastAPI(
     title="IT Ticket Classifier API",
     description="Intelligent ticket classification system",
     version="1.0.0",
-    lifespan=lifespan
+    lifespan=lifespan,
 )
 
 # CORS middleware
@@ -28,6 +28,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Include routers
+app.include_router(tickets_router)
 
 # Health check
 @app.get("/health")
