@@ -48,3 +48,13 @@ class AuditLogResponse(BaseModel):
     details: str
     timestamp: datetime
 
+class ClassificationResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    ticket_id: str
+    category: TicketCategory
+    priority: TicketPriority
+    category_confidence: float
+    priority_confidence: float
+    created_at: datetime
+
