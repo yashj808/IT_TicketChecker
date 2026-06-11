@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine, Column, Integer, String, DateTime, Text, Enum
+from sqlalchemy import create_engine, Column, Integer, String, DateTime, Text, Enum, Float
 from sqlalchemy.orm import sessionmaker, declarative_base
 from datetime import datetime, timezone
 import enum
@@ -58,6 +58,18 @@ class AuditLog(Base):
     action = Column(String)
     details = Column(Text)
     timestamp = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+class Classification(Base):
+    __tablename__ = "classifications"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    ticket_id = Column(String, index=True)
+    category = Column(Enum(TicketCategory))
+    priority = Column(Enum(TicketPriority))
+    category_confidence = Column(Float)
+    priority_confidence = Column(Float)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+
 
 # Initialize database
 def init_db():
