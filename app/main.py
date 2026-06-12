@@ -6,6 +6,7 @@ import uuid
 from app.config import settings
 from app.database import init_db, get_db, Ticket, AuditLog
 from app.models import TicketIngest, TicketResponse, AuditLogResponse
+from fastapi.responses import RedirectResponse
 from app.api.tickets import router as tickets_router
 
 @asynccontextmanager
@@ -31,6 +32,11 @@ app.add_middleware(
 
 # Include routers
 app.include_router(tickets_router)
+
+# Root redirect to docs
+@app.get("/", include_in_schema=False)
+async def root_redirect():
+    return RedirectResponse(url="/docs")
 
 # Health check
 @app.get("/health")
