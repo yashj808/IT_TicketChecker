@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+from typing import List
 import uuid
 from app.database import get_db, Ticket, Classification, AuditLog
 from app.models import (
@@ -37,6 +38,12 @@ async def ingest_ticket(ticket: TicketIngest, db: Session = Depends(get_db)):
     db.commit()
     
     return TicketResponse.model_validate(db_ticket)
+
+@router.get("/", response_model=List[TicketResponse])
+async def list_tickets(db: Session = Depends(get_db)):
+    """List all tickets."""
+    tickets = db.query(Ticket).all()
+    return [TicketResponse.model_validate(t) for t in tickets]
 
 @router.get("/{ticket_id}", response_model=TicketResponse)
 async def get_ticket(ticket_id: str, db: Session = Depends(get_db)):
