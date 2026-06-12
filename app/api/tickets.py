@@ -53,8 +53,12 @@ async def list_all_audit_logs(db: Session = Depends(get_db)):
 
 @router.get("/{ticket_id}", response_model=TicketResponse)
 async def get_ticket(ticket_id: str, db: Session = Depends(get_db)):
-    """Retrieve a ticket by ID."""
-    ticket = db.query(Ticket).filter(Ticket.ticket_id == ticket_id).first()
+    """Retrieve a ticket by ID (numeric or UUID)."""
+    if ticket_id.isdigit():
+        ticket = db.query(Ticket).filter(Ticket.id == int(ticket_id)).first()
+    else:
+        ticket = db.query(Ticket).filter(Ticket.ticket_id == ticket_id).first()
+
     if not ticket:
         raise HTTPException(status_code=404, detail="Ticket not found")
     return TicketResponse.model_validate(ticket)
