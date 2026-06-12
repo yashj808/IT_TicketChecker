@@ -45,6 +45,12 @@ async def list_tickets(db: Session = Depends(get_db)):
     tickets = db.query(Ticket).all()
     return [TicketResponse.model_validate(t) for t in tickets]
 
+@router.get("/audit", response_model=List[AuditLogResponse])
+async def list_all_audit_logs(db: Session = Depends(get_db)):
+    """Retrieve all audit logs across all tickets."""
+    logs = db.query(AuditLog).order_by(AuditLog.timestamp.desc()).all()
+    return [AuditLogResponse.model_validate(log) for log in logs]
+
 @router.get("/{ticket_id}", response_model=TicketResponse)
 async def get_ticket(ticket_id: str, db: Session = Depends(get_db)):
     """Retrieve a ticket by ID."""
@@ -52,6 +58,17 @@ async def get_ticket(ticket_id: str, db: Session = Depends(get_db)):
     if not ticket:
         raise HTTPException(status_code=404, detail="Ticket not found")
     return TicketResponse.model_validate(ticket)
+
+@router.get("/{ticket_id}/audit", response_model=List[AuditLogResponse])
+async def get_audit_trail(ticket_id: str, db: Session = Depends(get_db)):
+    """Retrieve audit trail for a specific ticket."""
+    logs = db.query(AuditLog).filter(AuditLog.ticket_id == ticket_id).all()
+    if not logs:
+        # Check if ticket exists to decide between 404 and empty list
+        ticket = db.query(Ticket).filter(Ticket.ticket_id == ticket_id).first()
+        if not ticket:
+            raise HTTPException(status_code=404, detail="Ticket not found")
+    return [AuditLogResponse.model_validate(log) for log in logs]
 
 @router.post("/classify/{ticket_id}", response_model=ClassificationResponse)
 async def classify(ticket_id: str, db: Session = Depends(get_db)):
