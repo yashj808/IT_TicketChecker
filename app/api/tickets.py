@@ -86,14 +86,19 @@ async def get_audit_trail(ticket_id: str, db: Session = Depends(get_db)):
 
 @router.post("/classify/{ticket_id}", response_model=ClassificationResponse)
 async def classify(ticket_id: str, db: Session = Depends(get_db)):
-    """Classify a ticket using ML model."""
-    
+    """Classify a ticket using ML model (numeric or UUID)."""
+
     # Get ticket
-    ticket = db.query(Ticket).filter(Ticket.ticket_id == ticket_id).first()
+    if ticket_id.isdigit():
+        ticket = db.query(Ticket).filter(Ticket.id == int(ticket_id)).first()
+    else:
+        ticket = db.query(Ticket).filter(Ticket.ticket_id == ticket_id).first()
+
     if not ticket:
         raise HTTPException(status_code=404, detail="Ticket not found")
-    
-    # Classify
+
+    actual_ticket_id = ticket.ticket_id
+
     category, priority, cat_conf, pri_conf = classify_ticket(
         ticket.subject, 
         ticket.description
@@ -101,7 +106,7 @@ async def classify(ticket_id: str, db: Session = Depends(get_db)):
     
     # Save classification
     classification = Classification(
-        ticket_id=ticket_id,
+        ticket_id=actual_ticket_id,
         category=category,
         priority=priority,
         category_confidence=cat_conf,
@@ -117,7 +122,7 @@ async def classify(ticket_id: str, db: Session = Depends(get_db)):
     
     # Log action
     audit = AuditLog(
-        ticket_id=ticket_id,
+        ticket_id=actual_ticket_id,
         action="classified",
         details=f"Category: {category}, Priority: {priority}, Confidence: {cat_conf:.2f}"
     )
@@ -125,7 +130,7 @@ async def classify(ticket_id: str, db: Session = Depends(get_db)):
     db.commit()
     
     return ClassificationResponse(
-        ticket_id=ticket_id,
+        ticket_id=actual_ticket_id,
         category=category,
         priority=priority,
         category_confidence=cat_conf,
