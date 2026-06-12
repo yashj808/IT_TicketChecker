@@ -1,10 +1,50 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+import uuid
 from app.database import get_db, Ticket, Classification, AuditLog
-from app.models import ClassificationResponse
+from app.models import (
+    TicketIngest, 
+    TicketResponse, 
+    AuditLogResponse, 
+    ClassificationResponse
+)
 from app.ml.classifier import classify_ticket
 
 router = APIRouter(prefix="/api/tickets", tags=["tickets"])
+
+@router.post("/ingest", response_model=TicketResponse)
+async def ingest_ticket(ticket: TicketIngest, db: Session = Depends(get_db)):
+    """Ingest a new IT support ticket."""
+    ticket_id = str(uuid.uuid4())
+    
+    db_ticket = Ticket(
+        ticket_id=ticket_id,
+        subject=ticket.subject,
+        description=ticket.description,
+        reporter=ticket.reporter
+    )
+    db.add(db_ticket)
+    db.commit()
+    db.refresh(db_ticket)
+    
+    # Log action
+    audit = AuditLog(
+        ticket_id=ticket_id,
+        action="ingested",
+        details=f"Ticket created: {ticket.subject}"
+    )
+    db.add(audit)
+    db.commit()
+    
+    return TicketResponse.model_validate(db_ticket)
+
+@router.get("/{ticket_id}", response_model=TicketResponse)
+async def get_ticket(ticket_id: str, db: Session = Depends(get_db)):
+    """Retrieve a ticket by ID."""
+    ticket = db.query(Ticket).filter(Ticket.ticket_id == ticket_id).first()
+    if not ticket:
+        raise HTTPException(status_code=404, detail="Ticket not found")
+    return TicketResponse.model_validate(ticket)
 
 @router.post("/classify/{ticket_id}", response_model=ClassificationResponse)
 async def classify(ticket_id: str, db: Session = Depends(get_db)):
