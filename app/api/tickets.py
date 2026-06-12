@@ -65,13 +65,23 @@ async def get_ticket(ticket_id: str, db: Session = Depends(get_db)):
 
 @router.get("/{ticket_id}/audit", response_model=List[AuditLogResponse])
 async def get_audit_trail(ticket_id: str, db: Session = Depends(get_db)):
-    """Retrieve audit trail for a specific ticket."""
-    logs = db.query(AuditLog).filter(AuditLog.ticket_id == ticket_id).all()
-    if not logs:
-        # Check if ticket exists to decide between 404 and empty list
-        ticket = db.query(Ticket).filter(Ticket.ticket_id == ticket_id).first()
+    """Retrieve audit trail for a specific ticket (numeric or UUID)."""
+    # First resolve the ticket to get its UUID if a numeric ID was provided
+    if ticket_id.isdigit():
+        ticket = db.query(Ticket).filter(Ticket.id == int(ticket_id)).first()
         if not ticket:
             raise HTTPException(status_code=404, detail="Ticket not found")
+        actual_ticket_id = ticket.ticket_id
+    else:
+        actual_ticket_id = ticket_id
+
+    logs = db.query(AuditLog).filter(AuditLog.ticket_id == actual_ticket_id).all()
+    if not logs:
+        # Check if ticket exists to decide between 404 and empty list
+        if not ticket_id.isdigit():
+            ticket = db.query(Ticket).filter(Ticket.ticket_id == ticket_id).first()
+            if not ticket:
+                raise HTTPException(status_code=404, detail="Ticket not found")
     return [AuditLogResponse.model_validate(log) for log in logs]
 
 @router.post("/classify/{ticket_id}", response_model=ClassificationResponse)
