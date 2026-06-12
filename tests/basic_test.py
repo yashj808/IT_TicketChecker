@@ -58,3 +58,17 @@ def test_get_audit_trail():
     assert response.status_code == 200
     assert len(response.json()) > 0
     assert response.json()[0]["action"] == "ingested"
+
+def test_list_tickets():
+    """Test listing all tickets."""
+    response = client.get("/api/tickets/")
+    assert response.status_code == 200
+    assert isinstance(response.json(), list)
+    assert len(response.json()) > 0
+
+def test_list_all_audit_logs():
+    """Test listing all audit logs."""
+    response = client.get("/api/tickets/audit")
+    assert response.status_code == 200
+    assert isinstance(response.json(), list)
+    assert len(response.json()) > 0
