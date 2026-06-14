@@ -17,6 +17,7 @@ scikit-learn = "*"
 pandas = "*"
 numpy = "*"
 joblib = "*"
+google-generativeai = "*"
 
 [dev-packages]
 
