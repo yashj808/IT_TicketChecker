@@ -3,9 +3,10 @@
 A tool to monitor and check IT support tickets.
 
 ## Features
-- [ ] Ticket status monitoring
-- [ ] Notification system
-- [ ] Reporting
+- [x] Intelligent Ticket Classification (ML-powered)
+- [x] Automated Audit Logging
+- [x] RESTful API for Ticket Ingestion and Management
+- [x] Multi-format ID support (Numeric or UUID)
 
 ## Setup
 
@@ -36,12 +37,12 @@ The API will be available at `http://localhost:8001`.
         -H "Content-Type: application/json" \
         -d '{"subject": "Network issue", "description": "WiFi is down", "reporter": "user@example.com"}'
    ```
-   *Note: This will return a `ticket_id` (a long UUID).*
+   *Note: This will return a `ticket_id` (a long UUID) and a numeric `id`.*
 
 2. **Retrieve the Ticket**:
-   Use the `ticket_id` returned from the ingest step:
+   You can use either the numeric `id` or the `ticket_id` (UUID):
    ```bash
-   curl "http://localhost:8001/api/tickets/<YOUR_TICKET_ID>"
+   curl "http://localhost:8001/api/tickets/<ID_OR_UUID>"
    ```
 
 3. **View Audit Trail**:
@@ -71,4 +72,4 @@ Once the server is running, you can access the interactive API documentation at:
 
 Create a `.env` file in the root directory and add the following:
 - `DATABASE_URL`: Connection string for the database (defaults to SQLite).
-- `API_PORT`: Port to run the API on (defaults to 8000).
+- `API_PORT`: Port to run the API on (defaults to 8001).
