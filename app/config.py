@@ -5,7 +5,7 @@ class Settings(BaseSettings):
     # App Settings
     APP_NAME: str = "IT Ticket Classifier"
     API_HOST: str = "0.0.0.0"
-    API_PORT: int = 8001
+    API_PORT: int = 8000
     
     # Database Settings
     DATABASE_URL: str = "sqlite:///./data/sqlite.db"
